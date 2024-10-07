@@ -11,11 +11,11 @@ const Chat = () => {
   const speak = async (text: string) => {
     try {
       const response = await fetch('/api/google-tts', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text }),
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text }),
       });
-  
+
       const data = await response.json();
       if (data.audioContent) {
         const audio = new Audio(`data:audio/mp3;base64,${data.audioContent}`);
@@ -27,7 +27,6 @@ const Chat = () => {
       console.error('Error calling TTS API:', error);
     }
   };
-  
 
   const sendMessage = async () => {
     if (!message.trim()) return;
@@ -96,7 +95,7 @@ const Chat = () => {
           onChange={(e) => setMessage(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="Type your message and press Enter..."
-          className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring focus:ring-blue-200"
+          className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring focus:ring-blue-200 text-green-600" // Apply green text color
           disabled={isLoading}
         />
       </div>
