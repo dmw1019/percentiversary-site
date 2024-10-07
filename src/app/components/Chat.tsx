@@ -1,12 +1,34 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import axios from 'axios';
 
 const Chat = () => {
   const [message, setMessage] = useState('');
   const [chatLog, setChatLog] = useState<Array<{ sender: string; text: string }>>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const speak = async (text: string) => {
+    try {
+      const response = await fetch('/api/google-tts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text }),
+      });
+  
+      const data = await response.json();
+      if (data.audioContent) {
+        const audio = new Audio(`data:audio/mp3;base64,${data.audioContent}`);
+        audio.play();
+      } else {
+        console.error('Failed to get audio content:', data.error);
+      }
+    } catch (error) {
+      console.error('Error calling TTS API:', error);
+    }
+  };
+  
 
   const sendMessage = async () => {
     if (!message.trim()) return;
@@ -29,7 +51,9 @@ const Chat = () => {
       }
 
       const data = await response.json();
-      setChatLog((log) => [...log, { sender: 'Chatbot', text: data.reply }]);
+      const botMessage = data.reply;
+      setChatLog((log) => [...log, { sender: 'Chatbot', text: botMessage }]);
+      speak(botMessage); // Speak the chatbot response
     } catch (err) {
       console.error('Error:', err);
       setError('Something went wrong. Please try again.');
@@ -57,9 +81,7 @@ const Chat = () => {
             >
               <div
                 className={`p-2 rounded-lg max-w-xs ${
-                  entry.sender === 'User'
-                    ? 'bg-blue-500 text-white'
-                    : 'bg-gray-200 text-gray-800'
+                  entry.sender === 'User' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-800'
                 }`}
               >
                 {entry.text}
