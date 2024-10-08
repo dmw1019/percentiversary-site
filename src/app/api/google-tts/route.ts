@@ -1,3 +1,5 @@
+// src/app/api/google-tts/route.ts
+
 import { NextRequest, NextResponse } from 'next/server';
 import axios from 'axios';
 
@@ -12,7 +14,7 @@ export async function POST(req: NextRequest) {
       `https://texttospeech.googleapis.com/v1/text:synthesize?key=${process.env.GOOGLE_TTS_API_KEY}`,
       {
         input: { text },
-        voice: { languageCode: 'en-US', name: 'en-US-Standard-F' },
+        voice: { languageCode: 'en-US', name: 'en-US-Standard-F' }, // Adjust voice settings as needed
         audioConfig: { audioEncoding: 'MP3' },
       }
     );
