@@ -1,5 +1,3 @@
-// src/app/components/Chat.tsx
-
 "use client";
 
 import { useEffect, useState } from 'react';
@@ -11,7 +9,6 @@ import type { GLTF } from 'three/examples/jsm/loaders/GLTFLoader';
 const AvatarWithChat = () => {
   const [messages, setMessages] = useState<{ role: string; content: string }[]>([]);
   const [input, setInput] = useState('');
-  const [model, setModel] = useState<THREE.Object3D | null>(null);
 
   useEffect(() => {
     const container = document.getElementById('avatar-container');
@@ -52,7 +49,6 @@ const AvatarWithChat = () => {
         loadedModel.rotation.y = 0;
         loadedModel.scale.set(1.5, 1.5, 1.5);
         scene.add(loadedModel);
-        setModel(loadedModel);
       },
       undefined,
       (error) => {
