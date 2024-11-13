@@ -1,18 +1,25 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import axios from 'axios';
 
 const Chat = () => {
   const [messages, setMessages] = useState<{ role: string; content: string }[]>([]);
   const [input, setInput] = useState('');
+  const [isListening, setIsListening] = useState(false);
+  const audioRef = useRef(null); // Ref to track the audio instance
 
-  const playAudio = (audioContent: string) => {
+  const playAudio = (audioContent) => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
+    }
     const audio = new Audio(`data:audio/mp3;base64,${audioContent}`);
+    audioRef.current = audio;
     audio.play();
   };
 
-  const requestGoogleTTS = async (text: string) => {
+  const requestGoogleTTS = async (text) => {
     try {
       const response = await axios.post('/api/google-tts', { text });
       const audioContent = response.data.audioContent;
@@ -22,14 +29,15 @@ const Chat = () => {
     }
   };
 
-  const sendMessage = async () => {
-    if (input.trim()) {
-      const userMessage = { role: 'user', content: input };
+  const sendMessage = async (messageContent) => {
+    const contentToSend = messageContent || input;
+    if (contentToSend.trim()) {
+      const userMessage = { role: 'user', content: contentToSend };
       setMessages([...messages, userMessage]);
-      setInput('');
+      setInput(''); // Clear the input field
 
       try {
-        const response = await axios.post('/api/chatbot', { message: input });
+        const response = await axios.post('/api/chatbot', { message: contentToSend });
         const reply = response.data.reply;
 
         setMessages((prevMessages) => [
@@ -44,17 +52,49 @@ const Chat = () => {
     }
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      sendMessage();
+  const startPressToTalk = () => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      alert("Speech Recognition not supported in this browser. Try Chrome or Edge.");
+      return;
     }
+
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.lang = "en-US";
+    recognition.interimResults = false;
+    recognition.continuous = false; // Only listen once
+
+    recognition.onstart = () => {
+      setIsListening(true);
+    };
+
+    recognition.onresult = (event) => {
+      const transcript = event.results[0][0].transcript;
+      setInput(transcript); // Set transcribed text as input
+      sendMessage(transcript); // Send the transcribed text immediately
+    };
+
+    recognition.onerror = (error) => {
+      console.error("Speech recognition error detected: " + error.message);
+      setIsListening(false);
+    };
+
+    recognition.onend = () => {
+      setIsListening(false);
+    };
+
+    recognition.start();
   };
 
   return (
-    <div style={{ display: 'flex', width: '100vw', height: '100vh', backgroundColor: '#000' }}>
-      <div style={{ width: '40%', padding: '20px', color: '#fff', display: 'flex', flexDirection: 'column', fontSize: '1.2rem' }}>
-        <div style={{ flexGrow: 1, overflowY: 'auto', border: '1px solid #fff', marginBottom: '15px', padding: '15px', borderRadius: '10px' }}>
+    <div style={{ display: 'flex', width: '100vw', height: '100vh', backgroundColor: '#000', justifyContent: 'center' }}>
+      <div style={{ width: '40%', padding: '20px', color: '#fff', display: 'flex', flexDirection: 'column', fontSize: '1.2rem', margin: '0 auto' }}>
+        <div style={{ flexGrow: 1, overflowY: 'auto', marginBottom: '15px', padding: '15px', borderRadius: '10px' }}>
           {messages.map((msg, idx) => (
             <div key={idx} style={{
               backgroundColor: msg.role === 'user' ? '#2a2a2a' : '#3a3a3a',
@@ -73,8 +113,7 @@ const Chat = () => {
         <textarea
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          onKeyPress={handleKeyPress}
-          placeholder="Type a message..."
+          placeholder="Type a message or press the mic button to speak..."
           style={{
             width: '100%',
             padding: '15px',
@@ -86,6 +125,22 @@ const Chat = () => {
             height: '60px'
           }}
         ></textarea>
+        <button
+          onClick={startPressToTalk}
+          style={{
+            width: '100%',
+            marginTop: '10px',
+            padding: '10px 20px',
+            backgroundColor: isListening ? '#f00' : '#00f',
+            color: '#fff',
+            border: 'none',
+            borderRadius: '5px',
+            fontSize: '1.2rem',
+            cursor: 'pointer'
+          }}
+        >
+          {isListening ? 'Listening...' : '🎤 Press to Talk'}
+        </button>
       </div>
     </div>
   );
