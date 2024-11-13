@@ -3,13 +3,44 @@
 import { useState, useRef } from 'react';
 import axios from 'axios';
 
+// Define types for SpeechRecognition and SpeechRecognitionEvent to avoid using `any`
+interface ISpeechRecognition {
+  new (): {
+    lang: string;
+    interimResults: boolean;
+    continuous: boolean;
+    onresult: (event: ISpeechRecognitionEvent) => void;
+    onerror: (event: ErrorEvent) => void;
+    onend: () => void;
+    onstart: () => void; // Added `onstart`
+    start: () => void;
+    stop: () => void;
+  };
+}
+
+interface ISpeechRecognitionEvent {
+  results: {
+    [key: number]: {
+      [key: number]: { transcript: string };
+    };
+  };
+}
+
+// Extend the Window interface with the new SpeechRecognition types
+declare global {
+  interface Window {
+    SpeechRecognition: ISpeechRecognition;
+    webkitSpeechRecognition: ISpeechRecognition;
+  }
+}
+
 const Chat = () => {
   const [messages, setMessages] = useState<{ role: string; content: string }[]>([]);
   const [input, setInput] = useState('');
   const [isListening, setIsListening] = useState(false);
-  const audioRef = useRef(null); // Ref to track the audio instance
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  const playAudio = (audioContent) => {
+  const playAudio = (audioContent: string) => {
     if (audioRef.current) {
       audioRef.current.pause();
       audioRef.current = null;
@@ -19,7 +50,7 @@ const Chat = () => {
     audio.play();
   };
 
-  const requestGoogleTTS = async (text) => {
+  const requestGoogleTTS = async (text: string) => {
     try {
       const response = await axios.post('/api/google-tts', { text });
       const audioContent = response.data.audioContent;
@@ -29,7 +60,7 @@ const Chat = () => {
     }
   };
 
-  const sendMessage = async (messageContent) => {
+  const sendMessage = async (messageContent: string) => {
     const contentToSend = messageContent || input;
     if (contentToSend.trim()) {
       const userMessage = { role: 'user', content: contentToSend };
@@ -67,19 +98,19 @@ const Chat = () => {
     const recognition = new SpeechRecognition();
     recognition.lang = "en-US";
     recognition.interimResults = false;
-    recognition.continuous = false; // Only listen once
+    recognition.continuous = false;
 
     recognition.onstart = () => {
       setIsListening(true);
     };
 
-    recognition.onresult = (event) => {
+    recognition.onresult = (event: ISpeechRecognitionEvent) => {
       const transcript = event.results[0][0].transcript;
-      setInput(transcript); // Set transcribed text as input
-      sendMessage(transcript); // Send the transcribed text immediately
+      setInput(transcript);
+      sendMessage(transcript);
     };
 
-    recognition.onerror = (error) => {
+    recognition.onerror = (error: ErrorEvent) => {
       console.error("Speech recognition error detected: " + error.message);
       setIsListening(false);
     };
