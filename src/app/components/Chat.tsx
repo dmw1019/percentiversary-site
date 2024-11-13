@@ -82,6 +82,12 @@ const Chat = () => {
     }
   };
 
+  const handleTextSubmit = () => {
+    if (input.trim()) {
+      sendMessage(input);
+    }
+  };
+
   const startPressToTalk = () => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
@@ -166,35 +172,50 @@ const Chat = () => {
             </div>
           ))}
         </div>
-        <textarea
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder="Type a message or press the mic button to speak..."
-          style={{
-            width: '100%',
-            padding: '15px',
-            backgroundColor: '#333',
-            color: '#ffffff',
-            border: '1px solid #555',
-            borderRadius: '5px',
-            fontSize: '1rem',
-            resize: 'none',
-            marginBottom: '10px',
-            height: '60px'
-          }}
-        ></textarea>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <textarea
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder="Type a message..."
+            style={{
+              flex: 1,
+              padding: '15px',
+              backgroundColor: '#333',
+              color: '#ffffff',
+              border: '1px solid #555',
+              borderRadius: '5px',
+              fontSize: '1rem',
+              resize: 'none',
+              height: '60px'
+            }}
+          ></textarea>
+          <button
+            onClick={handleTextSubmit}
+            style={{
+              padding: '15px 20px',
+              backgroundColor: '#4CAF50',
+              color: '#ffffff',
+              border: 'none',
+              borderRadius: '5px',
+              fontSize: '1rem',
+              cursor: 'pointer'
+            }}
+          >
+            Submit
+          </button>
+        </div>
         <button
           onClick={startPressToTalk}
           style={{
             width: '100%',
+            marginTop: '10px',
             padding: '15px',
             backgroundColor: isListening ? '#d32f2f' : '#4CAF50',
             color: '#ffffff',
             border: 'none',
             borderRadius: '5px',
             fontSize: '1rem',
-            cursor: 'pointer',
-            marginTop: 'auto'
+            cursor: 'pointer'
           }}
         >
           {isListening ? 'Listening...' : '🎤 Press to Talk'}
