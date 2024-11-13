@@ -12,7 +12,7 @@ interface ISpeechRecognition {
     onresult: (event: ISpeechRecognitionEvent) => void;
     onerror: (event: ErrorEvent) => void;
     onend: () => void;
-    onstart: () => void; // Added `onstart`
+    onstart: () => void;
     start: () => void;
     stop: () => void;
   };
@@ -26,7 +26,6 @@ interface ISpeechRecognitionEvent {
   };
 }
 
-// Extend the Window interface with the new SpeechRecognition types
 declare global {
   interface Window {
     SpeechRecognition: ISpeechRecognition;
@@ -65,7 +64,7 @@ const Chat = () => {
     if (contentToSend.trim()) {
       const userMessage = { role: 'user', content: contentToSend };
       setMessages([...messages, userMessage]);
-      setInput(''); // Clear the input field
+      setInput('');
 
       try {
         const response = await axios.post('/api/chatbot', { message: contentToSend });
@@ -76,7 +75,7 @@ const Chat = () => {
           { role: 'assistant', content: reply },
         ]);
 
-        await requestGoogleTTS(reply); // Play the response using Google TTS
+        await requestGoogleTTS(reply);
       } catch (error) {
         console.error('Error sending message:', error);
       }
@@ -123,19 +122,45 @@ const Chat = () => {
   };
 
   return (
-    <div style={{ display: 'flex', width: '100vw', height: '100vh', backgroundColor: '#000', justifyContent: 'center' }}>
-      <div style={{ width: '40%', padding: '20px', color: '#fff', display: 'flex', flexDirection: 'column', fontSize: '1.2rem', margin: '0 auto' }}>
-        <div style={{ flexGrow: 1, overflowY: 'auto', marginBottom: '15px', padding: '15px', borderRadius: '10px' }}>
+    <div style={{
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      width: '100vw',
+      height: '100vh',
+      backgroundColor: '#1e1e1e',
+      color: '#ffffff',
+      fontFamily: 'Arial, sans-serif',
+    }}>
+      <div style={{
+        display: 'flex',
+        flexDirection: 'column',
+        width: '95%',
+        maxWidth: '800px',
+        height: '90%',
+        backgroundColor: '#2a2a2a',
+        padding: '20px',
+        borderRadius: '10px',
+        boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)',
+      }}>
+        <div style={{
+          flex: 1,
+          overflowY: 'auto',
+          marginBottom: '15px',
+          padding: '15px',
+          borderRadius: '10px',
+          backgroundColor: '#1e1e1e',
+        }}>
           {messages.map((msg, idx) => (
             <div key={idx} style={{
-              backgroundColor: msg.role === 'user' ? '#2a2a2a' : '#3a3a3a',
-              borderRadius: '15px',
-              padding: '12px 18px',
-              marginBottom: '12px',
+              backgroundColor: msg.role === 'user' ? '#4CAF50' : '#3a3a3a',
+              borderRadius: '10px',
+              padding: '10px 15px',
+              marginBottom: '10px',
+              color: '#fff',
+              maxWidth: '75%',
               alignSelf: msg.role === 'user' ? 'flex-start' : 'flex-end',
-              color: msg.role === 'user' ? '#00ff00' : '#fff',
-              maxWidth: '80%',
-              fontSize: '1.1rem'
+              fontSize: '1rem'
             }}>
               {msg.content}
             </div>
@@ -148,11 +173,13 @@ const Chat = () => {
           style={{
             width: '100%',
             padding: '15px',
-            backgroundColor: '#222',
-            color: '#00ff00',
+            backgroundColor: '#333',
+            color: '#ffffff',
             border: '1px solid #555',
-            borderRadius: '10px',
-            fontSize: '1.2rem',
+            borderRadius: '5px',
+            fontSize: '1rem',
+            resize: 'none',
+            marginBottom: '10px',
             height: '60px'
           }}
         ></textarea>
@@ -160,14 +187,14 @@ const Chat = () => {
           onClick={startPressToTalk}
           style={{
             width: '100%',
-            marginTop: '10px',
-            padding: '10px 20px',
-            backgroundColor: isListening ? '#f00' : '#00f',
-            color: '#fff',
+            padding: '15px',
+            backgroundColor: isListening ? '#d32f2f' : '#4CAF50',
+            color: '#ffffff',
             border: 'none',
             borderRadius: '5px',
-            fontSize: '1.2rem',
-            cursor: 'pointer'
+            fontSize: '1rem',
+            cursor: 'pointer',
+            marginTop: 'auto'
           }}
         >
           {isListening ? 'Listening...' : '🎤 Press to Talk'}
